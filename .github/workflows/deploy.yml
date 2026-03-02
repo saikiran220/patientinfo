@@ -29,7 +29,9 @@ jobs:
 
       - name: Build Frontend Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/patient-frontend ./frontend
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/patient-frontend \
+            --build-arg VITE_API_URL=http://${{ secrets.EC2_HOST }}:8000 \
+            ./frontend
 
       - name: Push Frontend Image
         run: |
@@ -53,13 +55,13 @@ jobs:
             docker rm frontend-container || true
 
             # Run backend
-            docker run -d -p 8000:8000 \
+            docker run -d -p 8000:8000 --restart unless-stopped \
               --name backend-container \
               -e SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
               -e SUPABASE_KEY=${{ secrets.SUPABASE_KEY }} \
               ${{ secrets.DOCKER_USERNAME }}/patient-backend
 
             # Run frontend
-            docker run -d -p 5173:5173 \
+            docker run -d -p 5173:5173 --restart unless-stopped \
               --name frontend-container \
               ${{ secrets.DOCKER_USERNAME }}/patient-frontend
