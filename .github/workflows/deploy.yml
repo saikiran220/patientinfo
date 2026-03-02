@@ -39,5 +39,6 @@ jobs:
             docker rm backend-container || true
             docker run -d -p 8000:8000 \
               --name backend-container \
-              --env-file ~/patientinfo/backend/.env \
+              -e SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+              -e SUPABASE_KEY=${{ secrets.SUPABASE_KEY }} \
               ${{ secrets.DOCKER_USERNAME }}/patient-backend
