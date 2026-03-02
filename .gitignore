@@ -1,0 +1,25 @@
+# Dependencies
+frontend/node_modules/
+backend/venv/
+
+# Secrets (never commit)
+backend/.env
+.env
+.env.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# Build / output
+frontend/dist/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
