@@ -19,13 +19,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
+      - name: Build Backend Image
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/patient-backend ./backend
 
-      - name: Push Docker image
+      - name: Push Backend Image
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/patient-backend
+
+      - name: Build Frontend Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/patient-frontend ./frontend
+
+      - name: Push Frontend Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/patient-frontend
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v0.1.10
@@ -34,11 +42,24 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Pull latest images
             docker pull ${{ secrets.DOCKER_USERNAME }}/patient-backend
+            docker pull ${{ secrets.DOCKER_USERNAME }}/patient-frontend
+
+            # Stop old containers
             docker stop backend-container || true
             docker rm backend-container || true
+            docker stop frontend-container || true
+            docker rm frontend-container || true
+
+            # Run backend
             docker run -d -p 8000:8000 \
               --name backend-container \
               -e SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
               -e SUPABASE_KEY=${{ secrets.SUPABASE_KEY }} \
               ${{ secrets.DOCKER_USERNAME }}/patient-backend
+
+            # Run frontend
+            docker run -d -p 5173:5173 \
+              --name frontend-container \
+              ${{ secrets.DOCKER_USERNAME }}/patient-frontend
